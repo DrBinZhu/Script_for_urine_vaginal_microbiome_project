@@ -254,7 +254,7 @@ ggplot(data=present_new, aes(x=Species, y=value, fill = `Present`)) +
   geom_bar(stat="identity") +
   labs(x = 'Species', y = "Number of sample pairs")+ 
   theme(axis.title = element_text(size = 16), 
-        axis.text = element_text(size = 6), 
+        axis.text = element_text(size = 5), 
         legend.text = element_text(size = 16), 
         legend.title = element_text(size = 16)
   ) + coord_flip() 
