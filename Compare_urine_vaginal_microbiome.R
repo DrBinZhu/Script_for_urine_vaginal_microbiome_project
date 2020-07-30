@@ -193,15 +193,15 @@ sample_list$Pair = rbind(sample_list_v,sample_list_v)
 sample_list$Site = c(matrix(data = 'Vagina' , nrow = nrow(sample_list_u)),matrix(data = 'Urine' , nrow = nrow(sample_list_u)))
 
 
-# find species in two sites # present using 0.1% abundance for each species in each sample
+# find species in two sites # present using 0.01% abundance for each species in each sample
 present <- as.data.frame(matrix(data = NA, nrow = nrow(reads_table_u_new), ncol = ncol(reads_table_u_new)))
 colnames(present) <- colnames(reads_table_u_new)
 row.names(present) <- row.names(reads_table_u_new)
 
 for (a in 1: nrow(present)) {
   for (b in 1: ncol(present)) {
-    c = reads_table_abundance[a,b] > 0.001    # input
-    d = reads_table_abundance[a,b+(ncol(reads_table_u_new))] > 0.001    # input
+    c = reads_table_abundance[a,b] > 0.0001    # input
+    d = reads_table_abundance[a,b+(ncol(reads_table_u_new))] > 0.0001    # input
     
     if (c == T & d == T) {
       present[a,b] = 'Both'
@@ -258,111 +258,7 @@ ggplot(data=present_new, aes(x=Species, y=value, fill = `Present`)) +
         legend.text = element_text(size = 16), 
         legend.title = element_text(size = 16)
   ) + coord_flip() 
-ggsave('present_0.1.pdf', width=7, height=7)
-
-########## present threshold 0.01 ###########
-# get abundance table
-reads_table_abundance <- matrix(data =0, ncol = ncol(reads_table),nrow = nrow(reads_table))
-
-for (a in 1:ncol(reads_table)) {
-  reads_table_abundance[,a] <- reads_table[,a] / colSums(reads_table)[a]
-}
-reads_table_abundance <- as.data.frame(reads_table_abundance)
-row.names(reads_table_abundance) = row.names(reads_table)
-colnames(reads_table_abundance) = colnames(reads_table)
-
-# species threshold
-keep <- matrix(, ncol = nrow(reads_table_abundance))
-
-for (a in 1: nrow(reads_table_abundance)) {
-  c = sum(reads_table_abundance[a,] >= 0.001) / ncol(reads_table_abundance) >= 0.05        # input
-  d = sum(reads_table_abundance[a,] >= 0.0001) / ncol(reads_table_abundance) >= 0.15        # input
-  keep[a] = c|d
-}
-
-reads_table <- reads_table[keep,]
-
-reads_table_v_new <- as.data.frame(reads_table[,(1:(ncol(reads_table)/2))])
-reads_table_u_new <- as.data.frame(reads_table[,(ncol(reads_table)/2+1) : ncol(reads_table)])
-
-# get samples metadata
-sample_list_v = as.matrix(colnames(reads_table_v_new))
-sample_list_u = as.matrix(colnames(reads_table_u_new))
-
-sample_list = as.data.frame(matrix(data = NA, ncol=3, nrow= 2*nrow(sample_list_u)))
-colnames(sample_list) = c('Sample','Pair','Site')
-sample_list$Sample = rbind(sample_list_v,sample_list_u)
-sample_list$Pair = rbind(sample_list_v,sample_list_v)
-sample_list$Site = c(matrix(data = 'Vagina' , nrow = nrow(sample_list_u)),matrix(data = 'Urine' , nrow = nrow(sample_list_u)))
-
-
-# find species in two sites # present using 0.01% abundance for each species in each sample
-present <- as.data.frame(matrix(data = NA, nrow = nrow(reads_table_u_new), ncol = ncol(reads_table_u_new)))
-colnames(present) <- colnames(reads_table_u_new)
-row.names(present) <- row.names(reads_table_u_new)
-
-for (a in 1: nrow(present)) {
-  for (b in 1: ncol(present)) {
-    c = reads_table_abundance[a,b] > 0.0001    # input
-    d = reads_table_abundance[a,b+(ncol(reads_table_u_new))] > 0.0001    # input
-    
-    if (c == T & d == T) {
-      present[a,b] = 'Both'
-    } else if (c == T & d == F) {
-      present[a,b] = 'Vagina'
-    } else if (c == F & d == T) {
-      present[a,b] = 'Urine'
-    } else {
-      present[a,b] = 'None'
-    }
-  }
-}
-
-present_new <- as.data.frame(matrix(data =0, nrow = 4, ncol = ncol(present)))
-colnames(present_new) <- colnames(present)
-row.names(present_new) <- c('Both','Vagina','Urine','None')
-
-for (a in 1: nrow(present)) {
-  for (b in 1: ncol(present)) {
-    if (present[a,b] == 'Both') {
-      present_new[1,b] = present_new[1,b]+1
-    } else if (present[a,b] == 'Vagina') {
-      present_new[2,b] = present_new[2,b]+1
-    } else if (present[a,b] == 'Urine') {
-      present_new[3,b] = present_new[3,b]+1
-    } else {
-      present_new[4,b] = present_new[4,b]+1
-    }
-  }
-}
-present_new <- as.data.frame(t(present_new))
-present_new <- present_new[order(present_new$Both),]
-present_new_name <- row.names(present_new)
-
-present_new <- gather(present_new)
-
-present_name <- rep( present_new_name , 4)
-present_new$Species <- present_name
-
-present_new$Species<- as.factor(present_new$Species)
-
-present_new$Species <- factor(present_new$Species, levels=present_new_name)
-
-colnames(present_new)[1] = 'Present'
-
-ggplot(data=present_new, aes(x=Species, y=value, fill = `Present`)) +
-  geom_bar(stat="identity") +
-  labs(x = 'Species', y = "Number of sample pairs")+ 
-  theme(axis.title = element_text(size = 16), 
-        axis.text = element_text(size = 6), 
-        legend.text = element_text(size = 16), 
-        legend.title = element_text(size = 16)
-  ) + coord_flip() 
-ggsave('present_0.01.pdf', width=6.5, height=8)
-
-
-
-
+ggsave('present_0.01.pdf', width=7, height=7)
 
 ############################################# rarefaction ##################################################
 
