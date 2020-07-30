@@ -162,8 +162,8 @@ colnames(reads_table_abundance) = colnames(reads_table)
 keep <- matrix(, ncol = nrow(reads_table_abundance))
 
 for (a in 1: nrow(reads_table_abundance)) {
-  c = sum(reads_table_abundance[a,] >= 0.01) / ncol(reads_table_abundance) >= 0.05        # input
-  d = sum(reads_table_abundance[a,] >= 0.001) / ncol(reads_table_abundance) >= 0.15        # input
+  c = sum(reads_table_abundance[a,] >= 0.001) / ncol(reads_table_abundance) >= 0.05        # input
+  d = sum(reads_table_abundance[a,] >= 0.0001) / ncol(reads_table_abundance) >= 0.15        # input
   keep[a] = c|d
 }
 
@@ -200,7 +200,7 @@ row.names(present) <- row.names(reads_table_u_new)
 
 for (a in 1: nrow(present)) {
   for (b in 1: ncol(present)) {
-    c = reads_table_abundance[a,b] > 0.0001    # input
+    c = reads_table_abundance[a,b] > 0.001    # input
     d = reads_table_abundance[a,b+(ncol(reads_table_u_new))] > 0.001    # input
     
     if (c == T & d == T) {
@@ -317,15 +317,6 @@ for (a in 1: nrow(present)) {
     }
   }
 }
-
-
-present <- as.data.frame(t(present))
-BVAB1 <- cbind(BVAB1,as.character(present$`Lachnospiraceae BVAB1`))
-colnames(BVAB1) = c('0.1%','0.01%')
-row.names(BVAB1) = colnames(reads_table_u_new)
-BVAB1[BVAB1=='Both'|BVAB1=='Urine'] = 'present'
-BVAB1[BVAB1=='None'|BVAB1=='Vagina'] = 'no'
-
 
 present_new <- as.data.frame(matrix(data =0, nrow = 4, ncol = ncol(present)))
 colnames(present_new) <- colnames(present)
