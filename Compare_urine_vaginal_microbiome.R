@@ -215,7 +215,6 @@ for (a in 1: nrow(present)) {
 }
 
 present <- as.data.frame(t(present))
-BVAB1 <- as.character(present$`Lachnospiraceae BVAB1`)
 
 present_new <- as.data.frame(matrix(data =0, nrow = 4, ncol = ncol(present)))
 colnames(present_new) <- colnames(present)
@@ -485,7 +484,53 @@ pvalue <- rbind(pvalue,pvalue.adonis.pair)
 
 write.csv(pvalue,'pvalue.csv')
 
+# vagitype
+vagitype_v = matrix(data = NA, ncol =1, nrow = ncol(reads_table_v_new))
+colnames(vagitype_v) = 'Vagitype'
 
+for (a in 1:ncol(reads_table_v_new)) {
+  n= which(reads_table_v_new[,a] == max(reads_table_v_new[,a]), arr.ind=TRUE)
+  vagitype_v[a,1]= row.names(reads_table_v_new)[n]
+}
+
+vagitype_u= matrix(data = NA, ncol =1, nrow = ncol(reads_table_u_new))
+colnames(vagitype_u) = 'Vagitype'
+
+for (a in 1:ncol(reads_table_u_new)) {
+  n= which(reads_table_u_new[,a] == max(reads_table_u_new[,a]), arr.ind=TRUE)
+  vagitype_u[a,1]= row.names(reads_table_u_new)[n]
+}
+
+vagitype = rbind(vagitype_v,vagitype_u)
+vagitype_unique = unique(vagitype)
+for (a in 1:length(vagitype_unique)) {
+  if (sum(vagitype == vagitype_unique[a]) < 5) {
+    vagitype[vagitype == vagitype_unique[a]] = 'Others'
+  }
+}
+
+mds_data = cbind(mds_data,vagitype)
+ggplot(mds_data, aes(MDS1, MDS2))  +
+  geom_line(aes(group = Pair), size = 0.3, alpha = 0.7) +
+  geom_point(size=2,aes(shape = Site, color = Vagitype)) +
+  scale_color_manual(values=c('#A50000','#FF4040','#FFD054','#FFFB00','#FC91CB','#71D4FC','#D0D0D0')) +
+  coord_fixed()+ 
+  theme(
+    axis.title.x = element_text( size=16),
+    axis.title.y = element_text( size=16),
+    legend.text = element_text(size=16),
+    legend.title = element_text(size=16),
+    plot.title = element_text(hjust = 0.5, size = 14)
+  ) 
+ggsave("vagitype.pdf", width=8, height=5.5)
+
+same_vagitype = matrix(data = NA, nrow= nrow(mds_data)/2, ncol =2)
+same_vagitype[,1] = mds_data$Vagitype[1:(nrow(mds_data)/2)]
+same_vagitype[,2] = mds_data$Vagitype[(nrow(mds_data)/2+1):nrow(mds_data)]
+number_vagitype_2 = sum(same_vagitype[,1] == same_vagitype[,2])
+pvalue <- rbind(pvalue,number_vagitype_2)
+
+write.csv(pvalue,'pvalue.csv')
 
 
 
