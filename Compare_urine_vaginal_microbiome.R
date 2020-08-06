@@ -11,14 +11,14 @@ library(compositions)
 
 ############################################# prepare samples ##################################################
 # get reads of vaginal samples
-setwd('/Users/binzhu/secure/godel/gpfs_fs/bccl/bzhu/Chris')
+setwd('/Users/bzhu/secure/godel/gpfs_fs/bccl/bzhu/Chris')
 metadata_v = read.table('data_vagina.txt',header = F, sep = "|")
 metadata_u = read.table('data_urine.txt',header = F, sep = "|")
 
 ########################### data arrangement ###########################################
 metadata_v$V3 = str_replace_all(metadata_v$V3,'AT','')
 metadata_u$V3 = str_replace_all(metadata_u$V3,'AT','')
- 
+
 metadata_v_2 = as.data.frame(str_c(metadata_v$V2,metadata_v$V3,sep = " "))
 metadata_v = cbind(metadata_v$V1,metadata_v_2,metadata_v$V4)
 
@@ -510,10 +510,18 @@ for (a in 1:length(vagitype_unique)) {
 }
 
 mds_data = cbind(mds_data,vagitype)
+
+mds_data$Vagitype <- as.factor(mds_data$Vagitype)
+mds_data$Vagitype <- factor(mds_data$Vagitype, levels = c('Lactobacillus iners ','Enterobacteriaceae cluster31 ',
+                                                          'Lachnospiraceae BVAB1 ','Gardnerella vaginalis ',
+                                                          'Atopobium vaginae ','Lactobacillus crispatus_cluster ',
+                                                          'Lactobacillus gasseri_cluster ','Others'))
+
+  
 ggplot(mds_data, aes(MDS1, MDS2))  +
   geom_line(aes(group = Pair), size = 0.3, alpha = 0.7) +
   geom_point(size=2,aes(shape = Site, color = Vagitype)) +
-  scale_color_manual(values=c('#A50000','#FF4040','#FFD054','#FFFB00','#FC91CB','#71D4FC','#D0D0D0')) +
+  scale_color_manual(values=c('#A8C5D3','#3be5f7','#FC9800','#C80B0B','#D7A7F1','#FDFFBA','#F7A0A0','#3F3F3F')) +
   coord_fixed()+ 
   theme(
     axis.title.x = element_text( size=16),
@@ -629,8 +637,8 @@ plot_v$key <- factor(plot_v$key, levels = colnames(reads_table_v_new_bar))
 
 ggplot(data=plot_v, aes(x=key, y=value, fill=Species)) +
   geom_bar(stat="identity") +
-  scale_fill_manual(values=c('#A8C5D3','#FC9800','#C80B0B','#D7A7F1','#55ff42','#F7A0A0',
-                             '#FDFFBA','#3264B8','#bfbfbf','#3F3F3F')) +
+  scale_fill_manual(values=c('#A8C5D3','#FC9800','#C80B0B','#FDFFBA','#55ff42','#F7A0A0','#D7A7F1',
+                             '#3264B8','#bfbfbf','#3F3F3F')) +
   labs(x = 'Vaginal samples', y = "Abundance")+ 
   theme(axis.title = element_text(size = 16), 
         axis.text = element_text(size = 16), 
@@ -669,30 +677,6 @@ reads_table_u_new_bar = reads_table_u_new_bar[order(reads_table_u_new_bar$`Lacto
 reads_table_u_new_bar <- as.data.frame(t(reads_table_u_new_bar))
 reads_table_u_new_bar <- reads_table_u_new_bar/(colSums(reads_table_u_new_bar))
 
-plot_u <- gather(reads_table_u_new_bar)
-plot_u_name <- row.names(reads_table_u_new_bar)
-plot_u_name <- rep( plot_u_name , ncol(reads_table_u_new))
-plot_u$Species <- plot_u_name
-
-plot_u$Species <- as.factor(plot_u$Species)
-plot_u$Species <- factor(plot_u$Species, levels = plot_u$Species[1:10])
-
-plot_u$key <- as.factor(plot_u$key)
-plot_u$key <- factor(plot_u$key, levels = colnames(reads_table_u_new_bar))
-
-ggplot(data=plot_u, aes(x=key, y=value, fill=Species)) +
-  geom_bar(stat="identity") +
-  scale_fill_manual(values=c('#A8C5D3','#3be5f7','#FC9800','#C80B0B','#FDFFBA','#55ff42',
-                             '#D7A7F1','#3264B8','#F7A0A0','#3F3F3F')) +
-  labs(x = 'Urine samples', y = "Abundance")+ 
-  theme(axis.title = element_text(size = 16), 
-        axis.text = element_text(size = 16), 
-        legend.text = element_text(size = 16), 
-        legend.title = element_text(size = 16),
-        axis.text.x=element_blank(),
-        axis.ticks.x=element_blank())
-ggsave("bar_u.pdf", width=9, height=3.5)
-
 
 # urine with marched order
 plot_u <- gather(reads_table_u_new_bar)
@@ -715,8 +699,8 @@ plot_u$key <- factor(plot_u$key, levels = order_urine)
 
 ggplot(data=plot_u, aes(x=key, y=value, fill=Species)) +
   geom_bar(stat="identity") +
-  scale_fill_manual(values=c('#A8C5D3','#3be5f7','#FC9800','#C80B0B','#FDFFBA','#55ff42',
-                             '#D7A7F1','#3264B8','#F7A0A0','#3F3F3F')) +
+  scale_fill_manual(values=c('#A8C5D3','#3be5f7','#FC9800','#C80B0B','#D7A7F1','#55ff42','#FDFFBA',
+                             '#3264B8','#F7A0A0','#3F3F3F')) +
   labs(x = 'Urine samples', y = "Abundance")+ 
   theme(axis.title = element_text(size = 16), 
         axis.text = element_text(size = 16), 
@@ -726,71 +710,6 @@ ggplot(data=plot_u, aes(x=key, y=value, fill=Species)) +
         axis.ticks.x=element_blank())
 ggsave("bar_u_vagina_order.pdf", width=9, height=3.5)
 
-ggplot(data=plot_u, aes(x=key, y=value, fill=Species)) +
-  geom_bar(stat="identity") +
-  scale_fill_manual(values=c('#A8C5D3','#3be5f7','#FC9800','#C80B0B','#FDFFBA','#55ff42',
-                             '#D7A7F1','#3264B8','#F7A0A0','#3F3F3F')) +
-  labs(x = 'Urine samples', y = "")+ 
-  coord_polar() +
-  theme(axis.title = element_text(size = 16), 
-        axis.text = element_text(size = 16), 
-        legend.text = element_text(size = 16), 
-        legend.title = element_text(size = 16),
-        axis.text.x=element_blank(),
-        axis.ticks.x=element_blank(),
-        axis.ticks.y=element_blank(),
-        axis.text.y=element_blank())
-
-ggsave("bar_u_circle_vagina_order.pdf", width=10, height=10)
-
-# vagina with marched order
-plot_v <- gather(reads_table_v_new_bar)
-plot_v_name <- row.names(reads_table_v_new_bar)
-plot_v_name <- rep( plot_v_name , ncol(reads_table_v_new))
-plot_v$Species <- plot_v_name
-
-plot_v$Species <- as.factor(plot_v$Species)
-plot_v$Species <- factor(plot_v$Species, levels = plot_v$Species[1:10])
-
-plot_v$key <- as.factor(plot_v$key)
-order <- colnames(reads_table_u_new_bar)
-order_urine <- vector(mode = "character", length = length(order))
-sample_list_2 <- sample_list[(length(order)+1):nrow(sample_list),]
-for (a in 1: length(order)) {
-  n = which(sample_list_2[,1] == order[a])
-  order_urine[a] = sample_list_2[n,2]
-}
-plot_v$key <- factor(plot_v$key, levels = order_urine)
-
-ggplot(data=plot_v, aes(x=key, y=value, fill=Species)) +
-  geom_bar(stat="identity") +
-  scale_fill_manual(values=c('#A8C5D3','#FC9800','#C80B0B','#D7A7F1','#55ff42','#F7A0A0',
-                             '#FDFFBA','#3264B8','#bfbfbf','#3F3F3F')) +
-  labs(x = 'Vagina samples', y = "Abundance")+ 
-  theme(axis.title = element_text(size = 16), 
-        axis.text = element_text(size = 16), 
-        legend.text = element_text(size = 16), 
-        legend.title = element_text(size = 16),
-        axis.text.x=element_blank(),
-        axis.ticks.x=element_blank())
-ggsave("bar_v_urine_order.pdf", width=9, height=3.5)
-
-ggplot(data=plot_v, aes(x=key, y=value, fill=Species)) +
-  geom_bar(stat="identity") +
-  scale_fill_manual(values=c('#A8C5D3','#FC9800','#C80B0B','#D7A7F1','#55ff42','#F7A0A0',
-                             '#FDFFBA','#3264B8','#bfbfbf','#3F3F3F')) +
-  labs(x = 'Vagina samples', y = "")+ 
-  coord_polar() +
-  theme(axis.title = element_text(size = 16), 
-        axis.text = element_text(size = 16), 
-        legend.text = element_text(size = 16), 
-        legend.title = element_text(size = 16),
-        axis.text.x=element_blank(),
-        axis.ticks.x=element_blank(),
-        axis.ticks.y=element_blank(),
-        axis.text.y=element_blank())
-
-ggsave("bar_v_circle_urine_order.pdf", width=10, height=10)
 
 ################## create abundance table ##################
 reads_table_u_abundance <- matrix(data =0, ncol = ncol(reads_table_u_new),nrow = nrow(reads_table_u_new))
@@ -833,7 +752,7 @@ for (a in 1:nrow(line_list)) {
   line <- as.data.frame(t(rbind(reads_table_v_abundance[a,],reads_table_u_abundance[a,])))
   
   line <- log10(line)
-
+  
   colnames(line) = c('Vagina','Urine')
   
   line2=line
@@ -855,10 +774,10 @@ for (a in 1:nrow(line_list)) {
             axis.title.y = element_text( size=16)) 
     ggsave(paste0('linear_1_',line_list[a,1],'.pdf'), width=5.5, height=5.5)
   }
-
+  
 }
 
-  
+
 line_list$adj_p = p.adjust(line_list$`p-value`)  #  Benjamini & Hochberg 
 
 write.csv(line_list,'linear_regression.csv')
@@ -1202,10 +1121,17 @@ for (a in 1:length(vagitype_unique)) {
 }
 
 mds_data = cbind(mds_data,vagitype)
+mds_data$Vagitype <- as.factor(mds_data$Vagitype)
+mds_data$Vagitype <- factor(mds_data$Vagitype, levels = c('Lactobacillus iners ',
+                                                          'Lachnospiraceae BVAB1 ','Gardnerella vaginalis ',
+                                                          'Atopobium vaginae ','Lactobacillus crispatus_cluster ',
+                                                          'Lactobacillus gasseri_cluster ','Others'))
+
+
 ggplot(mds_data, aes(MDS1, MDS2))  +
   geom_line(aes(group = Pair), size = 0.3, alpha = 0.7) +
   geom_point(size=2,aes(shape = Site, color = Vagitype)) +
-  scale_color_manual(values=c('#A50000','#FF4040','#FFD054','#FFFB00','#FC91CB','#71D4FC','#D0D0D0')) +
+  scale_color_manual(values=c('#A8C5D3','#FC9800','#C80B0B','#D7A7F1','#FDFFBA','#F7A0A0','#3F3F3F')) +
   coord_fixed()+ 
   theme(
     axis.title.x = element_text( size=16),
@@ -1344,8 +1270,8 @@ plot_v$key <- factor(plot_v$key, levels = colnames(reads_table_v_new_bar))
 
 ggplot(data=plot_v, aes(x=key, y=value, fill=Species)) +
   geom_bar(stat="identity") +
-  scale_fill_manual(values=c('#A8C5D3','#FC9800','#C80B0B','#D7A7F1','#55ff42','#F7A0A0',
-                             '#FDFFBA','#3264B8','#bfbfbf','#3F3F3F')) +
+  scale_fill_manual(values=c('#A8C5D3','#FC9800','#C80B0B','#FDFFBA','#55ff42','#F7A0A0',
+                             '#D7A7F1','#3264B8','#bfbfbf','#3F3F3F')) +
   labs(x = 'Vaginal samples', y = "Abundance")+ 
   theme(axis.title = element_text(size = 16), 
         axis.text = element_text(size = 16), 
@@ -1384,30 +1310,6 @@ reads_table_u_new_bar = reads_table_u_new_bar[order(reads_table_u_new_bar$`Lacto
 reads_table_u_new_bar <- as.data.frame(t(reads_table_u_new_bar))
 reads_table_u_new_bar <- reads_table_u_new_bar/(colSums(reads_table_u_new_bar))
 
-plot_u <- gather(reads_table_u_new_bar)
-plot_u_name <- row.names(reads_table_u_new_bar)
-plot_u_name <- rep( plot_u_name , ncol(reads_table_u_new))
-plot_u$Species <- plot_u_name
-
-plot_u$Species <- as.factor(plot_u$Species)
-plot_u$Species <- factor(plot_u$Species, levels = plot_u$Species[1:10])
-
-plot_u$key <- as.factor(plot_u$key)
-plot_u$key <- factor(plot_u$key, levels = colnames(reads_table_u_new_bar))
-
-ggplot(data=plot_u, aes(x=key, y=value, fill=Species)) +
-  geom_bar(stat="identity") +
-  scale_fill_manual(values=c('#A8C5D3','#3be5f7','#FC9800','#C80B0B','#FDFFBA','#55ff42',
-                             '#D7A7F1','#3264B8','#F7A0A0','#3F3F3F')) +
-  labs(x = 'Urine samples', y = "Abundance")+ 
-  theme(axis.title = element_text(size = 16), 
-        axis.text = element_text(size = 16), 
-        legend.text = element_text(size = 16), 
-        legend.title = element_text(size = 16),
-        axis.text.x=element_blank(),
-        axis.ticks.x=element_blank())
-ggsave("bar_u_2.pdf", width=9, height=3.5)
-
 
 # urine with marched order
 plot_u <- gather(reads_table_u_new_bar)
@@ -1430,7 +1332,7 @@ plot_u$key <- factor(plot_u$key, levels = order_urine)
 
 ggplot(data=plot_u, aes(x=key, y=value, fill=Species)) +
   geom_bar(stat="identity") +
-  scale_fill_manual(values=c('#A8C5D3','#FC9800','#C80B0B','#FDFFBA','#55ff42','#D7A7F1',
+  scale_fill_manual(values=c('#A8C5D3','#FC9800','#C80B0B','#D7A7F1','#55ff42','#FDFFBA',
                              '#3264B8','#F7A0A0','#bfbfbf','#3F3F3F')) +
   labs(x = 'Urine samples', y = "Abundance")+ 
   theme(axis.title = element_text(size = 16), 
@@ -1440,72 +1342,6 @@ ggplot(data=plot_u, aes(x=key, y=value, fill=Species)) +
         axis.text.x=element_blank(),
         axis.ticks.x=element_blank())
 ggsave("bar_u_vagina_order_2.pdf", width=9, height=3.5)
-
-ggplot(data=plot_u, aes(x=key, y=value, fill=Species)) +
-  geom_bar(stat="identity") +
-  scale_fill_manual(values=c('#A8C5D3','#3be5f7','#FC9800','#C80B0B','#FDFFBA','#55ff42',
-                             '#D7A7F1','#3264B8','#F7A0A0','#3F3F3F')) +
-  labs(x = 'Urine samples', y = "")+ 
-  coord_polar() +
-  theme(axis.title = element_text(size = 16), 
-        axis.text = element_text(size = 16), 
-        legend.text = element_text(size = 16), 
-        legend.title = element_text(size = 16),
-        axis.text.x=element_blank(),
-        axis.ticks.x=element_blank(),
-        axis.ticks.y=element_blank(),
-        axis.text.y=element_blank())
-
-ggsave("bar_u_circle_vagina_order_2.pdf", width=10, height=10)
-
-# vagina with marched order
-plot_v <- gather(reads_table_v_new_bar)
-plot_v_name <- row.names(reads_table_v_new_bar)
-plot_v_name <- rep( plot_v_name , ncol(reads_table_v_new))
-plot_v$Species <- plot_v_name
-
-plot_v$Species <- as.factor(plot_v$Species)
-plot_v$Species <- factor(plot_v$Species, levels = plot_v$Species[1:10])
-
-plot_v$key <- as.factor(plot_v$key)
-order <- colnames(reads_table_u_new_bar)
-order_urine <- vector(mode = "character", length = length(order))
-sample_list_2 <- sample_list[(length(order)+1):nrow(sample_list),]
-for (a in 1: length(order)) {
-  n = which(sample_list_2[,1] == order[a])
-  order_urine[a] = sample_list_2[n,2]
-}
-plot_v$key <- factor(plot_v$key, levels = order_urine)
-
-ggplot(data=plot_v, aes(x=key, y=value, fill=Species)) +
-  geom_bar(stat="identity") +
-  scale_fill_manual(values=c('#A8C5D3','#FC9800','#C80B0B','#D7A7F1','#55ff42','#F7A0A0',
-                             '#FDFFBA','#3264B8','#bfbfbf','#3F3F3F')) +
-  labs(x = 'Vagina samples', y = "Abundance")+ 
-  theme(axis.title = element_text(size = 16), 
-        axis.text = element_text(size = 16), 
-        legend.text = element_text(size = 16), 
-        legend.title = element_text(size = 16),
-        axis.text.x=element_blank(),
-        axis.ticks.x=element_blank())
-ggsave("bar_v_urine_order_2.pdf", width=9, height=3.5)
-
-ggplot(data=plot_v, aes(x=key, y=value, fill=Species)) +
-  geom_bar(stat="identity") +
-  scale_fill_manual(values=c('#A8C5D3','#FC9800','#C80B0B','#D7A7F1','#55ff42','#F7A0A0',
-                             '#FDFFBA','#3264B8','#bfbfbf','#3F3F3F')) +
-  labs(x = 'Vagina samples', y = "")+ 
-  coord_polar() +
-  theme(axis.title = element_text(size = 16), 
-        axis.text = element_text(size = 16), 
-        legend.text = element_text(size = 16), 
-        legend.title = element_text(size = 16),
-        axis.text.x=element_blank(),
-        axis.ticks.x=element_blank(),
-        axis.ticks.y=element_blank(),
-        axis.text.y=element_blank())
-
-ggsave("bar_v_circle_urine_order_2.pdf", width=10, height=10)
 
 ################## linear regression  ################
 
@@ -1546,13 +1382,3 @@ for (a in 1:nrow(line_list)) {
 }
 line_list$adj_p = p.adjust(line_list$`p-value`)  #  Benjamini & Hochberg 
 write.csv(line_list,'linear_regression_2.csv')
-
-
-
-
-
-
-
-
-
-
